@@ -1,7 +1,9 @@
 package com.aurxsiu.datahomework.request;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
 public class RegisterRequest {
-    private String Username;
+    private String username;
     private String password;
 
     public String getPassword() {
@@ -13,15 +15,18 @@ public class RegisterRequest {
     }
 
     public String getUsername() {
-        return Username;
+        return username;
     }
 
     public void setUsername(String username) {
-        Username = username;
+        this.username = username;
     }
 
     public RegisterRequest(String username, String password) {
-        Username = username;
+        this.username = username;
         this.password = password;
+    }
+
+    public RegisterRequest() {
     }
 }

@@ -1,7 +1,7 @@
 package com.aurxsiu.datahomework.request;
 
 public class LoginRequest {
-    private String Username;
+    private String username;
     private String password;
 
     public String getPassword() {
@@ -13,15 +13,15 @@ public class LoginRequest {
     }
 
     public String getUsername() {
-        return Username;
+        return username;
     }
 
-    public void setUsername(String Username) {
-        this.Username = Username;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public LoginRequest(String Username, String password) {
-        this.Username = Username;
+    public LoginRequest(String username, String password) {
+        this.username = username;
         this.password = password;
     }
 }
