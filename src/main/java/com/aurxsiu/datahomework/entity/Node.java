@@ -1,10 +1,20 @@
 package com.aurxsiu.datahomework.entity;
 
 public class Node {
-    private int x;
-    private int y;
+    public Node(){}
+    private double x;
+    private double y;
 
     private String name;
+    private Integer id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -14,25 +24,27 @@ public class Node {
         this.name = name;
     }
 
-    public int getX() {
+
+    public double getX() {
         return x;
     }
 
-    public void setX(int x) {
+    public void setX(double x) {
         this.x = x;
     }
 
-    public int getY() {
+    public double getY() {
         return y;
     }
 
-    public void setY(int y) {
+    public void setY(double y) {
         this.y = y;
     }
 
-    public Node(int x, int y,String name) {
+    public Node(double x, double y, String name, Integer id) {
         this.x = x;
         this.y = y;
         this.name = name;
+        this.id = id;
     }
 }

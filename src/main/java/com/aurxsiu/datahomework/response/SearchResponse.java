@@ -1,19 +1,21 @@
 package com.aurxsiu.datahomework.response;
 
+import com.aurxsiu.datahomework.entity.JourneyMap;
+
 import java.util.ArrayList;
 
 public class SearchResponse {
-    public ArrayList<String> getResult() {
+    private ArrayList<JourneyMap> result;
+
+    public SearchResponse(ArrayList<JourneyMap> result) {
+        this.result = result;
+    }
+
+    public ArrayList<JourneyMap> getResult() {
         return result;
     }
 
-    public void setResult(ArrayList<String> result) {
+    public void setResult(ArrayList<JourneyMap> result) {
         this.result = result;
     }
-
-    public SearchResponse(ArrayList<String> result) {
-        this.result = result;
-    }
-
-    private ArrayList<String> result;
 }

@@ -1,29 +1,24 @@
 package com.aurxsiu.datahomework.entity;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 
 public class JourneyMap {
     private HashSet<Node> nodes;
-    private HashSet<Connection> connections;
+    private HashSet<ArrayList<Integer>> connections;
     private String name;
     private Integer type;//0表示景区,1表示校园
     private Integer judge;
     private Integer popular;
-    public JourneyMap(){
+    public JourneyMap(){}
 
-    }
 
-    public JourneyMap(HashSet<Node> nodes, HashSet<Connection> connections,String name) {
-        this.nodes = nodes;
-        this.connections = connections;
-        this.name = name;
-    }
-
-    public JourneyMap(String name, int judge, int popular) {
+    public JourneyMap(String name, int judge, int popular,int type) {
         this.name = name;
         this.judge = judge;
         this.popular = popular;
+        this.type = type;
     }
 
     public HashSet<Node> getNodes() {
@@ -34,11 +29,12 @@ public class JourneyMap {
         this.nodes = nodes;
     }
 
-    public HashSet<Connection> getConnections() {
+
+    public HashSet<ArrayList<Integer>> getConnections() {
         return connections;
     }
 
-    public void setConnections(HashSet<Connection> connections) {
+    public void setConnections(HashSet<ArrayList<Integer>> connections) {
         this.connections = connections;
     }
 
@@ -79,7 +75,7 @@ public class JourneyMap {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         JourneyMap that = (JourneyMap) o;
-        return type == that.type && Objects.equals(name, that.name);
+        return type==that.type && Objects.equals(name, that.name);
     }
 
     @Override
