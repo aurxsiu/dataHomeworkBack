@@ -3,22 +3,19 @@ package com.aurxsiu.datahomework.util;
 import com.aurxsiu.datahomework.entity.JourneyMap;
 import com.aurxsiu.datahomework.entity.Node;
 import com.aurxsiu.datahomework.entity.User;
+import com.aurxsiu.datahomework.struct.UserRate;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.springframework.aot.hint.FieldHint;
 
-import javax.print.DocFlavor;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileHelper {
-    //todo 锁加了一半就跑了....
-    //todo 改private
-    public static final File scenicFile = new File(FileHelper.getResourcePath() + "/scenic.mysql");
-    public static final File schoolFile = new File(FileHelper.getResourcePath() + "/school.mysql");
+    //todo 锁加了一半就跑了...
+
+    public static final File scenicFile = new File(FileHelper.getDataPath() + "/scenic.mysql");
+    public static final File schoolFile = new File(FileHelper.getDataPath() + "/school.mysql");
     private static final File scenicMapFile = new File(FileHelper.getResourcePath() + "/scenic.json");
     private static final File schoolMapFile = new File(FileHelper.getResourcePath() + "/schoolMap.json");
     public static final File scenicMapNodeFile = new File(FileHelper.getResourcePath() + "/scenicMapNodes.mysql");
@@ -26,6 +23,8 @@ public class FileHelper {
     public static final File schoolMapNodeFile = new File(FileHelper.getResourcePath() + "/schoolMapNodes.mysql");
     public static final File schoolMapConnectionsFile = new File(FileHelper.getResourcePath() + "/schoolMapConnects.mysql");
     private static final File userFile = new File(FileHelper.getDataPath() + "/user.mysql");
+
+    private static final File user_rateFile=new File(FileHelper.getDataPath()+"/UserRate.json");
 
     /**
      * 内部方法
@@ -76,9 +75,11 @@ public class FileHelper {
         return System.getProperty("user.dir").replace("\\", "/");
     }
     //todo 改private
-    public static String readString(File file) throws Exception {
+    public static String readString(File file){
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             return new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+        }catch (Exception e){
+            throw new RuntimeException();
         }
     }
 
@@ -86,9 +87,13 @@ public class FileHelper {
     /**
      * 不保证成功,也不校验
      */
-    public static void writeString(File file, String result) throws Exception {
+    public static void writeString(File file, String result){
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             fileOutputStream.write(result.getBytes(StandardCharsets.UTF_8));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -98,6 +103,18 @@ public class FileHelper {
     }
 
     public static class MapFileHelper {
+        private static boolean addPopularIfExist(String name, File schoolFile) {
+            HashSet<JourneyMap> encode = JsonHelper.encode(new TypeReference<HashSet<JourneyMap>>() {
+            }, readString(schoolFile));
+            for (JourneyMap journeyMap : encode) {
+                if(journeyMap.getName().equals(name)){
+                    journeyMap.setPopular(journeyMap.getPopular()+1);
+                    writeString(schoolFile,JsonHelper.decode(encode));
+                    return true;
+                }
+            }
+            return false;
+        }
         public static class SchoolMapFileHelper {
             public static HashSet<JourneyMap> getSchools() {
                 synchronized (SchoolMapFileHelper.class) {
@@ -109,6 +126,14 @@ public class FileHelper {
                     }
                 }
             }
+
+            public static boolean addPopularIfExist(String name){
+                synchronized (SchoolMapFileHelper.class) {
+                    return MapFileHelper.addPopularIfExist(name, schoolFile);
+                }
+            }
+
+
         }
 
         public static class ScenicMapFileHelper {
@@ -120,6 +145,12 @@ public class FileHelper {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
+                }
+            }
+
+            public static boolean addPopularIfExist(String name){
+                synchronized (ScenicMapFileHelper.class) {
+                    return MapFileHelper.addPopularIfExist(name, scenicFile);
                 }
             }
         }
@@ -282,6 +313,7 @@ public class FileHelper {
         FileHelper.writeString(newFile, JsonHelper.decode(encode.getConnections()));
     }
 
+    //todo 改为setUser(),不能直接setFile
     public static void setUserFile(String content){
         synchronized (userFile){
             try{
@@ -310,4 +342,62 @@ public class FileHelper {
             }
         }
     }
+
+    public static void addPopular(String name){
+        if (!MapFileHelper.ScenicMapFileHelper.addPopularIfExist(name)) {
+            if (!MapFileHelper.SchoolMapFileHelper.addPopularIfExist(name)) {
+                throw new RuntimeException("name 不存在!");
+            }
+        }
+    }
+
+
+
+    public static class UserRateFileHelper{
+        private static boolean createUserRateFileIfNotExist(){
+            if(!user_rateFile.isFile()){
+                try {
+                    user_rateFile.createNewFile();
+                    //todo 调试
+                    HashMap<String, HashMap<Integer, Double>> stringHashMapHashMap = new HashMap<>();
+                    writeString(user_rateFile,"{}");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return true;
+            }
+            return false;
+        }
+        /**
+         * 自己挖的坑,返回空对象,懒得填了
+         * */
+        public static UserRate getUserRates(){
+            if (createUserRateFileIfNotExist()) {
+                return new UserRate();
+            }
+
+            return JsonHelper.encode(new TypeReference<UserRate>() {
+            },readString(user_rateFile));
+        }
+        public static UserRate addRate(int userId,String mapName,double rate){
+            UserRate userRates = getUserRates();
+            if(userRates.userRates==null){
+                userRates.userRates=new HashMap<String,HashMap<Integer,Double>>();
+            }
+
+            if (userRates.userRates.containsKey(mapName)) {
+                userRates.userRates.get(mapName).put(userId,rate);
+            }else{
+                HashMap<Integer, Double> integerDoubleHashMap = new HashMap<>();
+                integerDoubleHashMap.put(userId,rate);
+                userRates.userRates.put(mapName,integerDoubleHashMap);
+            }
+
+            writeString(user_rateFile,JsonHelper.decode(userRates));
+
+            return userRates;
+        }
+    }
+
+
 }

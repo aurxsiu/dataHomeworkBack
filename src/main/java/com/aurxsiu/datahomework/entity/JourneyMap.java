@@ -9,7 +9,7 @@ public class JourneyMap {
     private HashSet<ArrayList<Integer>> connections;
     private String name;
     private Integer type;//0表示景区,1表示校园
-    private Integer judge;
+    private Integer judge;  
     private Integer popular;
     public JourneyMap(){}
 

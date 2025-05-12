@@ -4,13 +4,13 @@ import com.aurxsiu.datahomework.entity.JourneyMap;
 import com.aurxsiu.datahomework.entity.Node;
 import com.aurxsiu.datahomework.request.GetLeastConnectionsRequest;
 import com.aurxsiu.datahomework.response.GetLeastConnectionsResponse;
+import com.aurxsiu.datahomework.struct.UserRate;
 import com.aurxsiu.datahomework.util.FileHelper;
 import com.aurxsiu.datahomework.util.JsonHelper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +26,7 @@ public class MapService {
         }).collect(Collectors.toCollection(HashSet::new));
     }
 
-    public JourneyMap getMap(int type) {
+    public JourneyMap getMap(int type,String name) {
         try {
             JourneyMap R = new JourneyMap();
             if (type == 0) {
@@ -40,10 +40,38 @@ public class MapService {
                 R.setConnections(JsonHelper.encode(new TypeReference<HashSet<ArrayList<Integer>>>() {
                 }, FileHelper.readString(FileHelper.schoolMapConnectionsFile)));
             }
+
+            FileHelper.addPopular(name);
             return R;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Double getRate(String mapName) {
+        UserRate userRates = FileHelper.UserRateFileHelper.getUserRates();
+
+
+        return countRate(userRates,mapName);
+    }
+
+    private Double countRate(UserRate userRate,String mapName){
+        if(userRate.userRates==null){
+            return null;
+        }
+
+        int rateNum=0,rateSum=0;
+        if (userRate.userRates.containsKey(mapName)) {
+            for (Integer i : userRate.userRates.get(mapName).keySet()) {
+                rateSum+=userRate.userRates.get(mapName).get(i);
+            }
+            return rateSum*1.0/userRate.userRates.get(mapName).size();
+        }
+        return null;
+    }
+    public double addRate(String mapName,int userId,double rate){
+        UserRate userRate = FileHelper.UserRateFileHelper.addRate(userId, mapName, rate);
+        return countRate(userRate,mapName);
     }
 
     static class Connection {

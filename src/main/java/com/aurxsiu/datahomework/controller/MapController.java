@@ -1,8 +1,6 @@
 package com.aurxsiu.datahomework.controller;
 
-import com.aurxsiu.datahomework.request.GetMapRequest;
-import com.aurxsiu.datahomework.request.SearchRequest;
-import com.aurxsiu.datahomework.request.GetLeastConnectionsRequest;
+import com.aurxsiu.datahomework.request.*;
 import com.aurxsiu.datahomework.response.GetLeastConnectionsResponse;
 import com.aurxsiu.datahomework.response.GetMapResponse;
 import com.aurxsiu.datahomework.response.SearchResponse;
@@ -20,8 +18,8 @@ public class MapController {
     }
 
     @PostMapping("/getMap")
-    public GetMapResponse getMap(@RequestBody GetMapRequest requset){
-        return new GetMapResponse(mapService.getMap(requset.getType()));
+    public GetMapResponse getMap(@RequestBody GetMapRequest request){
+        return new GetMapResponse(mapService.getMap(request.getType(),request.getName()));
     }
     @PostMapping("/search")
     public SearchResponse search(@RequestBody SearchRequest searchRequest){
@@ -31,5 +29,15 @@ public class MapController {
     @PostMapping("getLeastConnections")
     public GetLeastConnectionsResponse getLeastConnections(@RequestBody GetLeastConnectionsRequest request){
         return mapService.getLeastConnections(request);
+    }
+
+    @PostMapping("getRate")
+    public Double GetRate(@RequestBody GetRateRequest request){
+        return mapService.getRate(request.mapName);
+    }
+
+    @PostMapping("addRate")
+    public Double AddRate(@RequestBody AddRateRequest request){
+        return mapService.addRate(request.getMapName(),request.getUserId(),request.getRate());
     }
 }
