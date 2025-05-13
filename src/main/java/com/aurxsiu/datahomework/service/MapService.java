@@ -23,7 +23,7 @@ public class MapService {
     private HashSet<JourneyMap> filterByWord(String s) {
         return FileHelper.MapFileHelper.getAllMap().stream().filter(v -> {
             return v.getName().contains(s);
-        }).collect(Collectors.toCollection(HashSet::new));
+        }).peek(journeyMap -> journeyMap.setJudge(getRate(journeyMap.getName()))).collect(Collectors.toCollection(HashSet::new));
     }
 
     public JourneyMap getMap(int type,String name) {

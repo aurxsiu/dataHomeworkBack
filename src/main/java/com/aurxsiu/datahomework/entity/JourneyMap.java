@@ -9,12 +9,12 @@ public class JourneyMap {
     private HashSet<ArrayList<Integer>> connections;
     private String name;
     private Integer type;//0表示景区,1表示校园
-    private Integer judge;  
+    private Double judge;
     private Integer popular;
     public JourneyMap(){}
 
 
-    public JourneyMap(String name, int judge, int popular,int type) {
+    public JourneyMap(String name, Double judge, int popular,int type) {
         this.name = name;
         this.judge = judge;
         this.popular = popular;
@@ -54,11 +54,11 @@ public class JourneyMap {
         this.type = type;
     }
 
-    public Integer getJudge() {
+    public Double getJudge() {
         return judge;
     }
 
-    public void setJudge(Integer judge) {
+    public void setJudge(Double judge) {
         this.judge = judge;
     }
 

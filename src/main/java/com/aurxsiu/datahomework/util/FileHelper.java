@@ -42,7 +42,7 @@ public class FileHelper {
             String name = split1[0];
             int judge = Integer.parseInt(split1[1]);
             int popular = Integer.parseInt(split1[2]);
-            set.add(new JourneyMap(name, judge, popular, 0));
+            set.add(new JourneyMap(name, (double) judge, popular, 0));
         }
         String to = JsonHelper.decode(set);
         scenicFile.createNewFile();
@@ -61,7 +61,7 @@ public class FileHelper {
             String name = split1[0];
             int judge = Integer.parseInt(split1[1]);
             int popular = Integer.parseInt(split1[2]);
-            set.add(new JourneyMap(name, judge, popular, 1));
+            set.add(new JourneyMap(name, (double)judge, popular, 1));
         }
         to = JsonHelper.decode(set);
         schoolFile.createNewFile();
