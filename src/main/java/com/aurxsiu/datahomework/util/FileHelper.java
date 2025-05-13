@@ -26,6 +26,8 @@ public class FileHelper {
 
     private static final File user_rateFile=new File(FileHelper.getDataPath()+"/UserRate.json");
 
+    private static final File mark_folder = new File(FileHelper.getDataPath()+"/mark");
+
     /**
      * 内部方法
      */
@@ -399,5 +401,44 @@ public class FileHelper {
         }
     }
 
+    public static class MarkFileHelper{
+        public static File getFolder(){
+            if(!mark_folder.exists()){
+                if (!mark_folder.mkdirs()) {
+                    throw new RuntimeException();
+                }
+            }
+            return mark_folder;
+        }
+        public static File createFile(long fileId, int userId, String mapName){
+            File file = new File(getFolder().getPath()+"/"+mapName+"_"+userId+"_"+fileId);
+            if(getFile(fileId)!=null){
+                throw new RuntimeException("fileId错误");
+            }
 
+            try {
+                file.createNewFile();
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return file;
+        }
+        private static File getFile(long id){
+            for (File s : getFolder().listFiles()) {
+                if(s.getName().endsWith("_"+ id)){
+                    return s;
+                }
+            }
+
+            return null;
+        }
+
+        public static void deleteFile(HashSet<Long> ids){
+            for (Long id : ids) {
+                File file = getFile(id);
+                file.delete();
+            }
+        }
+    }
 }
