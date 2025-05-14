@@ -7,7 +7,6 @@ import com.aurxsiu.datahomework.response.GetMapResponse;
 import com.aurxsiu.datahomework.response.SearchResponse;
 import com.aurxsiu.datahomework.service.MapService;
 import com.aurxsiu.datahomework.util.FileHelper;
-import com.aurxsiu.datahomework.util.HuffmanCodeUtil;
 import com.aurxsiu.datahomework.util.SnowflakeIdWorker;
 import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.Link;
@@ -24,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/map")
@@ -96,7 +96,7 @@ public class MapController {
         Document document = parser.parse(mark.markContent);
         String title = mark.title;
 
-        File result = FileHelper.MarkFileHelper.createMdFile(mark.title, HuffmanCodeUtil.HuffmanCode.huffmanZip(title.getBytes()), mark.userId, mark.mapName);
+        File result = FileHelper.MarkFileHelper.createMdFile(mark.title, mark.markContent, mark.userId, mark.mapName);
 
         if (result == null) {
             return false;
@@ -116,4 +116,13 @@ public class MapController {
         return true;
     }
 
+    @PostMapping("/getMark")
+    public MdMark GetMark(@RequestBody GetMarkRequest request){
+        return FileHelper.MarkFileHelper.addMarkClickByTitle(request.getTitle(),request.getUserId());
+    }
+
+    @PostMapping("getMarkTitles")
+    public ArrayList<MdMark> GetAllMarkInfo(){
+        return FileHelper.MarkFileHelper.getAllMarkRateSorted();
+    }
 }

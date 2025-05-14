@@ -8,4 +8,6 @@ public class MdMark {
     public String title;
     public int userId;
     public String mapName;
+    public Double rate;
+    public int click;
 }
