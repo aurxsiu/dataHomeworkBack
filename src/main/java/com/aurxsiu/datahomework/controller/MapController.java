@@ -24,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/map")
@@ -117,12 +119,43 @@ public class MapController {
     }
 
     @PostMapping("/getMark")
-    public MdMark GetMark(@RequestBody GetMarkRequest request){
-        return FileHelper.MarkFileHelper.addMarkClickByTitle(request.getTitle(),request.getUserId());
+    public MdMark GetMark(@RequestBody GetMarkRequest request) {
+        return FileHelper.MarkFileHelper.addMarkClickByTitle(request.getTitle(), request.getUserId());
     }
 
     @PostMapping("getMarkTitles")
-    public ArrayList<MdMark> GetAllMarkInfo(){
-        return FileHelper.MarkFileHelper.getAllMarkRateSorted();
+    public ArrayList<MdMark> GetAllMarkInfo(@RequestBody GetMarkTitlesRequest request) {
+        ArrayList<MdMark> allMarkRateSorted = FileHelper.MarkFileHelper.getAllMarkRateSorted();
+        allMarkRateSorted.sort((v1, v2) -> {
+            if (v1.rate == null) {
+                if (v2.rate == null) {
+                    return v1.click - v2.click;
+                } else {
+                    return -1;
+                }
+            } else {
+                if (v2.rate == null) {
+                    return 1;
+                } else {
+                    return (int) (v1.rate - v2.rate);
+                }
+            }
+        });
+        Collections.reverse(allMarkRateSorted);
+        if (request.mapName == null) {
+            return allMarkRateSorted;
+        }
+        return allMarkRateSorted.stream().filter(v -> {
+            return v.mapName.equals(request.mapName);
+        }).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @PostMapping("addMarkRate")
+    public Double AddMarkRate(@RequestBody AddMarkRateRequest request) {
+        return FileHelper.MarkFileHelper.addMarkRate(request);
+    }
+    @PostMapping("filter")
+    public ArrayList<String> Filter(@RequestBody FilterRequest request){
+        return FileHelper.MarkFileHelper.filter(request.filter);
     }
 }

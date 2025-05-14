@@ -1,5 +1,6 @@
 package com.aurxsiu.datahomework.util;
 
+import com.aurxsiu.datahomework.controller.AddMarkRateRequest;
 import com.aurxsiu.datahomework.entity.JourneyMap;
 import com.aurxsiu.datahomework.entity.MdMark;
 import com.aurxsiu.datahomework.entity.Node;
@@ -525,19 +526,19 @@ public class FileHelper {
             throw new RuntimeException("不符合预期");
         }
 
-        public static File[] getAllMd() {
+        private static File[] getAllMd() {
             return getFolder(mark_folder).listFiles();
         }
 
-        public static MdMark getMarkByTitle(String title) {
+        /**
+         * 获取title,mapName,userId
+         * */
+        public static MdMark getMarkInfoByTitle(String title) {
             File mdFileByTitle = getMdFileByTitle(title);
             MdMark result = new MdMark();
-            //todo
-//            result.markContent = new String(HuffmanCodeUtil.HuffmanCode.unZipFile(mdFileByTitle));
             result.title = title;
             result.mapName = getMdMapNameByFileName(mdFileByTitle.getName());
             result.userId = getMdUserIdByFileName(mdFileByTitle.getName());
-
             return result;
         }
 
@@ -587,7 +588,11 @@ public class FileHelper {
                 }
                 result.get(title).click++;
                 if (userRateMark.rate != null) {
-                    result.get(title).rate += userRateMark.rate;
+                    if(result.get(title).rate==null){
+                        result.get(title).rate=(double)userRateMark.rate;
+                    }else{
+                        result.get(title).rate += userRateMark.rate;
+                    }
                     resultRateNum.put(title, resultRateNum.get(title) + 1);
                 }
             }
@@ -655,10 +660,10 @@ public class FileHelper {
             int rateSum = 0, rateNum = 0, click = 0;
             ArrayList<UserRateMark> allMarkRate = getAllMarkRate();
             for (UserRateMark userRateMark : allMarkRate) {
-                if (userRateMark.userId == userId) {
-                    exist = true;
-                }
                 if (userRateMark.title.equals(title)) {
+                    if (userRateMark.userId == userId) {
+                        exist = true;
+                    }
                     if (userRateMark.rate != null) {
                         rateSum += userRateMark.rate;
                         rateNum++;
@@ -680,6 +685,40 @@ public class FileHelper {
                 allMarkRate.add(add);
 
                 writeString(user_rate_mark_file, JsonHelper.decode(allMarkRate));
+
+            }
+
+
+            return result;
+        }
+
+        public static Double addMarkRate(AddMarkRateRequest request){
+            ArrayList<FileHelper.MarkFileHelper.UserRateMark> allMarkRate = FileHelper.MarkFileHelper.getAllMarkRate();
+
+            int rateSum=0,rateNum=0;
+            for (FileHelper.MarkFileHelper.UserRateMark rateMark : allMarkRate) {
+                if(rateMark.title.equals(request.title)){
+                    if(rateMark.userId==request.userId){
+                        rateMark.rate=request.rate;
+                    }
+                    if(rateMark.rate!=null){
+                        rateNum++;
+                        rateSum+=rateMark.rate;
+                    }
+                }
+            }
+
+            FileHelper.writeString(user_rate_mark_file,JsonHelper.decode(allMarkRate));
+
+            return rateSum*1.0/rateNum;
+        }
+
+        public static ArrayList<String> filter(String filter){
+            ArrayList<String> result = new ArrayList<>();
+            for (File file : getAllMd()) {
+                if (new String(Depress.unZipFile(file)).contains(filter)) {
+                    result.add(getMdTitleByFileName(file.getName()));
+                }
             }
 
             return result;
