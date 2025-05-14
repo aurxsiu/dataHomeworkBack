@@ -26,7 +26,9 @@ public class FileHelper {
 
     private static final File user_rateFile=new File(FileHelper.getDataPath()+"/UserRate.json");
 
-    private static final File mark_folder = new File(FileHelper.getDataPath()+"/mark");
+    private static final File mark_resource_folder = new File(FileHelper.getDataPath()+"/mark/markResource");
+
+    private static final File mark_folder = new File(FileHelper.getDataPath()+"/mark/md");
 
     /**
      * 内部方法
@@ -402,17 +404,20 @@ public class FileHelper {
     }
 
     public static class MarkFileHelper{
-        public static File getFolder(){
-            if(!mark_folder.exists()){
-                if (!mark_folder.mkdirs()) {
+        private static File getFolder(File file){
+            if(!file.exists()){
+                if (!file.mkdirs()) {
                     throw new RuntimeException();
                 }
             }
-            return mark_folder;
+            return file;
         }
-        public static File createFile(long fileId, int userId, String mapName){
-            File file = new File(getFolder().getPath()+"/"+mapName+"_"+userId+"_"+fileId);
-            if(getFile(fileId)!=null){
+        public static File getResourceFolder(){
+            return getFolder(mark_resource_folder);
+        }
+        public static File createResourceFile(long fileId, int userId, String mapName){
+            File file = new File(getResourceFolder().getPath()+"/"+mapName+"_"+userId+"_"+fileId);
+            if(getResourceFile(fileId)!=null){
                 throw new RuntimeException("fileId错误");
             }
 
@@ -424,8 +429,8 @@ public class FileHelper {
             }
             return file;
         }
-        private static File getFile(long id){
-            for (File s : getFolder().listFiles()) {
+        private static File getResourceFile(long id){
+            for (File s : getResourceFolder().listFiles()) {
                 if(s.getName().endsWith("_"+ id)){
                     return s;
                 }
@@ -434,11 +439,43 @@ public class FileHelper {
             return null;
         }
 
-        public static void deleteFile(HashSet<Long> ids){
+        public static void deleteResourceFile(HashSet<Long> ids){
             for (Long id : ids) {
-                File file = getFile(id);
+                File file = getResourceFile(id);
                 file.delete();
             }
+        }
+
+        public static File getMdFolder(){
+            return getFolder(mark_folder);
+        }
+
+        /**
+         * name_mapName_userId
+         * 保证mapName,userId无'_'
+         * */
+        public static File createMdFile(String title,byte[] content,int userId,String mapName){
+            File mdFolder = getMdFolder();
+
+            for (File file : mdFolder.listFiles()) {
+                String name = file.getName();
+                String substring = name.substring(0, name.substring(0, name.lastIndexOf("_")).lastIndexOf("_"));
+                if(substring.equals(title)){
+                    return null;
+                }
+            }
+
+            File newFile = new File(mdFolder.getPath()+"/"+title+"_"+mapName+"_"+userId);
+            try {
+                return newFile.createNewFile()?newFile:null;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public static File getMdFile(){
+            //todo
+            return null;
         }
     }
 }

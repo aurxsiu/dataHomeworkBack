@@ -106,6 +106,8 @@ public class HuffmanCodeUtil {
 
         }
 
+
+
         /**
          * 文件压缩
          *
@@ -217,7 +219,7 @@ public class HuffmanCodeUtil {
          * @param bytes
          * @return
          */
-        private static byte[] huffmanZip(byte[] bytes) {
+        public static byte[] huffmanZip(byte[] bytes) {
             List<Node> nodes = getNodes(bytes);
             Node huffmanTreeRoot = createHuffmanTree(nodes);
             Map<Byte, String> huffmanCodes = getCodes(huffmanTreeRoot);

@@ -7,6 +7,7 @@ import com.aurxsiu.datahomework.response.GetMapResponse;
 import com.aurxsiu.datahomework.response.SearchResponse;
 import com.aurxsiu.datahomework.service.MapService;
 import com.aurxsiu.datahomework.util.FileHelper;
+import com.aurxsiu.datahomework.util.HuffmanCodeUtil;
 import com.aurxsiu.datahomework.util.SnowflakeIdWorker;
 import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.Link;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashSet;
 
 @RestController
 @RequestMapping("/map")
@@ -32,40 +32,42 @@ public class MapController {
     private final MapService mapService;
     private final SnowflakeIdWorker snowflakeIdWorker;
 
-    public MapController(MapService mapService,SnowflakeIdWorker snowflakeIdWorker) {
+    public MapController(MapService mapService, SnowflakeIdWorker snowflakeIdWorker) {
         this.mapService = mapService;
-        this.snowflakeIdWorker=snowflakeIdWorker;
+        this.snowflakeIdWorker = snowflakeIdWorker;
     }
 
     @PostMapping("/getMap")
-    public GetMapResponse getMap(@RequestBody GetMapRequest request){
-        return new GetMapResponse(mapService.getMap(request.getType(),request.getName()));
+    public GetMapResponse getMap(@RequestBody GetMapRequest request) {
+        return new GetMapResponse(mapService.getMap(request.getType(), request.getName()));
     }
+
     @PostMapping("/search")
-    public SearchResponse search(@RequestBody SearchRequest searchRequest){
+    public SearchResponse search(@RequestBody SearchRequest searchRequest) {
         String input = searchRequest.getInput();
         return new SearchResponse(mapService.searchMap(input));
     }
+
     @PostMapping("getLeastConnections")
-    public GetLeastConnectionsResponse getLeastConnections(@RequestBody GetLeastConnectionsRequest request){
+    public GetLeastConnectionsResponse getLeastConnections(@RequestBody GetLeastConnectionsRequest request) {
         return mapService.getLeastConnections(request);
     }
 
     @PostMapping("getRate")
-    public Double GetRate(@RequestBody GetRateRequest request){
+    public Double GetRate(@RequestBody GetRateRequest request) {
         return mapService.getRate(request.mapName);
     }
 
     @PostMapping("addRate")
-    public Double AddRate(@RequestBody AddRateRequest request){
-        return mapService.addRate(request.getMapName(),request.getUserId(),request.getRate());
+    public Double AddRate(@RequestBody AddRateRequest request) {
+        return mapService.addRate(request.getMapName(), request.getUserId(), request.getRate());
     }
 
     @PostMapping("uploadFile")
-    public long UploadFile(@RequestParam("file") MultipartFile file,@RequestParam("userId") Integer userId,@RequestParam("mapName") String mapName){
-        long fileId= snowflakeIdWorker.nextId();
-        File target = FileHelper.MarkFileHelper.createFile(fileId,userId,mapName);
-        try (FileOutputStream out = new FileOutputStream(target)){
+    public long UploadFile(@RequestParam("file") MultipartFile file, @RequestParam("userId") Integer userId, @RequestParam("mapName") String mapName) {
+        long fileId = snowflakeIdWorker.nextId();
+        File target = FileHelper.MarkFileHelper.createResourceFile(fileId, userId, mapName);
+        try (FileOutputStream out = new FileOutputStream(target)) {
             out.write(file.getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -76,7 +78,7 @@ public class MapController {
 
     @GetMapping("/file/{id}")
     public ResponseEntity<Resource> getImage(@PathVariable String id) throws IOException {
-        File[] matches = FileHelper.MarkFileHelper.getFolder().listFiles((dir, name) -> name.endsWith("_"+id));
+        File[] matches = FileHelper.MarkFileHelper.getResourceFolder().listFiles((dir, name) -> name.endsWith("_" + id));
         if (matches == null || matches.length == 0) {
             return ResponseEntity.notFound().build();
         }
@@ -88,26 +90,30 @@ public class MapController {
     }
 
     @PostMapping("/saveMark")
-    public void SaveMark(@RequestBody MdMark mark){
+    public boolean SaveMark(@RequestBody MdMark mark) {
         MutableDataSet options = new MutableDataSet();
         Parser parser = Parser.builder(options).build();
         Document document = parser.parse(mark.markContent);
+        String title = mark.title;
 
-        HashSet<Long> contentFile = new HashSet<>();
+        File result = FileHelper.MarkFileHelper.createMdFile(mark.title, HuffmanCodeUtil.HuffmanCode.huffmanZip(title.getBytes()), mark.userId, mark.mapName);
+
+        if (result == null) {
+            return false;
+        }
         // 遍历 AST 节点
         document.getDescendants().forEach(node -> {
             if (node instanceof Link link) {
                 String url = link.getUrl().toString();
-                mark.filesUploaded.remove(Long.valueOf(url.substring(url.lastIndexOf("/")+1)));
+                mark.filesUploaded.remove(Long.valueOf(url.substring(url.lastIndexOf("/") + 1)));
             } else if (node instanceof Image image) {
                 String url = image.getUrl().toString();
-                mark.filesUploaded.remove(Long.valueOf(url.substring(url.lastIndexOf("/")+1)));
+                mark.filesUploaded.remove(Long.valueOf(url.substring(url.lastIndexOf("/") + 1)));
             }
         });
+        FileHelper.MarkFileHelper.deleteResourceFile(mark.filesUploaded);
 
-        FileHelper.MarkFileHelper.deleteFile(mark.filesUploaded);
-
-
+        return true;
     }
 
 }
